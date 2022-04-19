@@ -15,7 +15,7 @@ def start(update, context):
     smile = emojize(EMOJIS[1])
     reply_keyboard = [['/find', '/add'],
                       ['/help', '/new'],
-                      ['/about_user', '/follow_to_car']]
+                      ['/about_user', '/follow_car']]
     markup = ReplyKeyboardMarkup(reply_keyboard,
                                  one_time_keyboard=True,
                                  resize_keyboard=True)
@@ -33,6 +33,9 @@ def find(update, context):
 
 
 def found_brand(update, context):
+    if update.message.text == 'back':
+        return ConversationHandler.END
+
     context.user_data['car_brand'] = update.message.text
 
     update.message.reply_text("What car model would you like to see?\n"
@@ -41,6 +44,9 @@ def found_brand(update, context):
 
 
 def found_model(update, context):
+    if update.message.text == 'back':
+        return 'brand'
+
     context.user_data['model'] = update.message.text
 
     reply_keyboard = [['by year', 'by date of creation'],
@@ -52,6 +58,9 @@ def found_model(update, context):
 
 
 def sort(update, context):
+    if update.message.text == 'back':
+        return 'model'
+
     way_to_sort = update.message.text
 
     db_session.global_init("db/mods.db")
@@ -98,6 +107,8 @@ def add(update, context):
 
 
 def brand(update, context):
+    if update.message.text == 'back':
+        return ConversationHandler.END
     context.user_data['brand'] = update.message.text.lower()
     update.message.reply_text(
         "What is the model of your car?")
@@ -105,6 +116,9 @@ def brand(update, context):
 
 
 def car_model(update, context):
+    if update.message.text == 'back':
+        return 'brand'
+
     context.user_data['model'] = update.message.text.lower()
     update.message.reply_text(
         "What year your car is?")
@@ -112,6 +126,9 @@ def car_model(update, context):
 
 
 def car_year(update, context):
+    if update.message.text == 'back':
+        return 'model'
+
     context.user_data['year'] = int(update.message.text)
     update.message.reply_text(
         "Give a brief description of your mod")
@@ -119,6 +136,9 @@ def car_year(update, context):
 
 
 def description(update, context):
+    if update.message.text == 'back':
+        return 'year'
+
     context.user_data['description'] = update.message.text
     update.message.reply_text(
         "Please send a preview photo of your car")
@@ -126,6 +146,9 @@ def description(update, context):
 
 
 def image(update, context):
+    if update.message.text == 'back':
+        return 'descript'
+
     context.user_data['file'] = context.bot.getFile(update.message.photo[-1].file_id)
     context.user_data['image'] = update.message.photo[-1].file_id
     update.message.reply_text(f"Send a link to author of the mod")
@@ -133,6 +156,9 @@ def image(update, context):
 
 
 def author(update, context):
+    if update.message.text == 'back':
+        return 'image'
+
     context.user_data['author'] = update.message.text
     update.message.reply_text(f"Final step! Send link to download your mod!")
     return 'link'
@@ -140,6 +166,10 @@ def author(update, context):
 
 def link(update, context):
     context.user_data['link'] = update.message.text
+
+    if update.message.text == 'back':
+        return 'author'
+
     reply_keyboard = [['Yes', 'No']]
     markup = ReplyKeyboardMarkup(reply_keyboard,
                                  one_time_keyboard=False,
@@ -161,6 +191,10 @@ def confirmation(update, context):
     markup = ReplyKeyboardMarkup(reply_keyboard,
                                  one_time_keyboard=True,
                                  resize_keyboard=True)
+
+    if update.message.text == 'back':
+        return 'link'
+
     if update.message.text.lower() in ['yes', 'sure', 'y', 'yeah']:
         with open('brands.txt', 'r') as file:
             brands_available = file.read().split(', ')
@@ -212,9 +246,11 @@ def helpfunc(update, context):
                               "/find - after choosing a brand and a model of a car you want to find "
                               "you get a list of mods available\n"
                               "/new - shows 10 last added mods\n"
-                              "/follow_to_car - enable notifications when new mod of a subscribed car appears\n"
+                              "/follow_car - enable notifications when new mod of a subscribed car appears\n"
                               "/unfollow - disable notifications on a car you're subscribed to\n"
-                              "/about_user - get info about your subscriptions")
+                              "/about_user - get info about your subscriptions"
+                              'to make a step back just write "back" if you are in commands like /follow_car,'
+                              ' /find or /add')
 
 
 def start_follow(update, context):
@@ -238,6 +274,9 @@ def follow_model(update, context: telegram.ext.CallbackContext):
     db_sess = db_session.create_session()
     db_sess.add(user)
     db_sess.commit()
+
+    if update.message.text == 'back':
+        return 'brand'
 
     reply_keyboard = [['/find', '/add'],
                       ['/help', '/new'],
@@ -388,7 +427,7 @@ def main():
             'model': [MessageHandler(Filters.text & ~Filters.command, car_model)],
             'year': [MessageHandler(Filters.text & ~Filters.command, car_year)],
             'descript': [MessageHandler(Filters.text & ~Filters.command, description)],
-            'image': [MessageHandler(Filters.photo, image)],
+            'image': [MessageHandler(Filters.photo | Filters.text, image)],
             'author': [MessageHandler(Filters.text & ~Filters.command, author)],
             'link': [MessageHandler(Filters.text & ~Filters.command, link)],
             'confirm': [MessageHandler(Filters.text & ~Filters.command, confirmation)]
@@ -407,7 +446,7 @@ def main():
     )
 
     update_user = ConversationHandler(
-        entry_points=[CommandHandler('follow_to_car', start_follow, pass_args=True,
+        entry_points=[CommandHandler('follow_car', start_follow, pass_args=True,
                                      pass_job_queue=True,
                                      pass_chat_data=True)],
         states={

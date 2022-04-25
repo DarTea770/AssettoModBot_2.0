@@ -3,9 +3,10 @@ from .db_session import SqlAlchemyBase
 from datetime import datetime
 
 
-class Mods(SqlAlchemyBase):
+class Mods(SqlAlchemyBase):  # class to make table with available mods
     __tablename__ = 'mods'
 
+    # making fields to fill them with mods' data
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     description = sqlalchemy.Column(sqlalchemy.String, default='')

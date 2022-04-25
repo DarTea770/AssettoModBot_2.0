@@ -8,7 +8,7 @@ SqlAlchemyBase = dec.declarative_base()
 __factory = None
 
 
-def global_init(db_file):
+def global_init(db_file):  # function to initialize database
     global __factory
 
     if __factory:
@@ -27,6 +27,6 @@ def global_init(db_file):
     SqlAlchemyBase.metadata.create_all(engine)
 
 
-def create_session() -> Session:
+def create_session() -> Session:  # making access to the database for the bot
     global __factory
     return __factory()

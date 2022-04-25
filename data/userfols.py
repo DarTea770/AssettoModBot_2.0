@@ -3,8 +3,10 @@ from .db_session import SqlAlchemyBase
 from datetime import datetime
 
 
-class UserFols(SqlAlchemyBase):
+class UserFols(SqlAlchemyBase):  # class to interact with database of users' subscriptions
     __tablename__ = 'userfols'
+
+    # making fields to fill them with users' subscriptions to cars
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)

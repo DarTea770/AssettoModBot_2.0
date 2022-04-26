@@ -478,7 +478,7 @@ def info_about_game(update, context):  # function to tell user what is Assetto c
 
 def main():  # main function of the bot to monitor others functions
     # initializing bot with token
-    updater = Updater('5147850682:AAEl34eHZfS9epe2lPxQkpHjX5HG_cdcBDc', use_context=True)
+    updater = Updater('My_token', use_context=True)
     dp = updater.dispatcher
 
     reply_keyboard = ['/start']

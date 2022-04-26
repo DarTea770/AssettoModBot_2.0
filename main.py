@@ -7,8 +7,7 @@ from data.userfols import UserFols
 import sqlalchemy
 from emoji import emojize
 import datetime
-import requests
-
+import wikipedia
 
 # constant variables
 EMOJIS = ['🙌', '😃']
@@ -25,7 +24,8 @@ def start(update, context):   # greeting/start function
 
     update.message.reply_text(
         f"Hello, {update.message.from_user.first_name}! Let's start searching for new mods!{smile}\n"
-        f"if you want to get more information about this bot use /about command",
+        f"if you want to get more information about this bot use /about command\n"
+        f"Don't know about Assetto Corsa yet? Just check /about_Assetto_Corsa section!",
         reply_markup=markup)  # sending message with starting info
 
 
@@ -464,6 +464,18 @@ def about_user(update, context):  # function to get users' info
         update.message.reply_text("You are not subscribed to any car yet")
 
 
+def info_about_game(update, context):  # function to tell user what is Assetto corsa
+    reply_keyboard = [['/find', '/add'],
+                      ['/help', '/new'],
+                      ['/about_user', '/follow_car']]
+    markup = ReplyKeyboardMarkup(reply_keyboard,
+                                 one_time_keyboard=False,
+                                 resize_keyboard=True)
+
+    # here we're using Wikipedia API to get actual info about the game
+    update.message.reply_text(wikipedia.page('Assetto corsa').section('Gameplay'), reply_markup=markup)
+
+
 def main():  # main function of the bot to monitor others functions
     # initializing bot with token
     updater = Updater('5147850682:AAEl34eHZfS9epe2lPxQkpHjX5HG_cdcBDc', use_context=True)
@@ -478,6 +490,7 @@ def main():  # main function of the bot to monitor others functions
     dp.add_handler(CommandHandler("about", about))
     dp.add_handler(CommandHandler("new", new_mods))
     dp.add_handler(CommandHandler('about_user', about_user))
+    dp.add_handler(CommandHandler('about_Assetto_Corsa', info_about_game))
 
     # mod adding dialogue creating
     mod_adding = ConversationHandler(

@@ -7,6 +7,8 @@ from data.userfols import UserFols
 import sqlalchemy
 from emoji import emojize
 import datetime
+import requests
+
 
 # constant variables
 EMOJIS = ['🙌', '😃']
@@ -214,12 +216,14 @@ def confirmation(update, context):  # function which confirms if user wants to s
         with open('brands.txt', 'r') as file:
             brands_available = file.read().split(', ')
 
+        update.message.reply_text(
+            "Please wait, we're checking the information you wrote)")
+
+        checked = False
         if context.user_data['brand'] in brands_available:
             checked = True
-        else:
-            checked = False
 
-        if checked:
+        if checked:  # if mod passed the checking
             db_session.global_init("db/mods.db")  # initializing database with mods
             mod = Mods()  # creating new mod with Mods class
             # downloading photo to the 'previews' folder
@@ -242,7 +246,7 @@ def confirmation(update, context):  # function which confirms if user wants to s
                 reply_markup=ReplyKeyboardRemove())
         else:
             update.message.reply_text(
-                "Try to check if you wrote car brand correctly...",
+                "Try to check if you wrote brand or link to mod correctly...",
                 reply_markup=markup)
 
         context.user_data.clear()
@@ -263,7 +267,7 @@ def helpfunc(update, context):  # help function with all existing commands
                               "/about - a brief description of this bot"
                               "/find - after choosing a brand and a model of a car you want to find "
                               "you get a list of mods available\n"
-                              "/new - shows 10 last added mods\n"
+                              "/new - shows 5 last added mods\n"
                               "/follow_car - enable notifications when new mod of a subscribed car appears\n"
                               "/unfollow - disable notifications on a car you're subscribed to\n"
                               "/about_user - get info about your subscriptions"
@@ -357,7 +361,7 @@ def new_mods(update, context):  # function to get 10 recently added mods
     db_session.global_init("db/mods.db")  # initializing database
     db_sess = db_session.create_session()
     max_id = db_sess.query(sqlalchemy.func.max(Mods.id)).scalar()  # getting id of the last added mod
-    mods_for_now = sorted(db_sess.query(Mods).filter(Mods.id >= max_id - 10),
+    mods_for_now = sorted(db_sess.query(Mods).filter(Mods.id >= max_id - 4),
                           key=lambda x: x.created_date, reverse=True)   # getting 10 mods by id
     reply_keyboard = [['/find', '/add'],
                       ['/help', '/new'],
@@ -365,8 +369,7 @@ def new_mods(update, context):  # function to get 10 recently added mods
     markup = ReplyKeyboardMarkup(reply_keyboard,
                                  one_time_keyboard=False,
                                  resize_keyboard=True)
-    update.message.reply_text(
-        "Come back soon!", reply_markup=markup)
+
     for car in mods_for_now:
         # sending found mods
         context.bot.sendPhoto(chat_id=update.message.chat_id, photo=open(f'./previews/{car.image}.jpg', 'rb'),

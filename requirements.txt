@@ -11,3 +11,4 @@ SQLAlchemy==1.4.35
 tornado==6.1
 tzdata==2022.1
 tzlocal==4.2
+wikipedia==1.4.0
